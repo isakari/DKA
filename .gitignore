@@ -30,3 +30,31 @@
 *.exe
 *.out
 *.app
+
+# misc
+fort.*
+*~
+*.res
+*.el2
+*.gp
+*.tgz
+.DS_Store
+
+# Doxygen
+Doxyfile
+docs/
+
+# TeX
+*aux
+*bbl
+*blg
+*log
+*pdf
+*bib
+*dvi
+*tex
+
+# figures
+*eps
+*svg
+*png
