@@ -10,6 +10,6 @@ module module_globals
   real(8),parameter :: pi=acos(-1.d0) !< Pi
 
   ! AutoDiff
-  integer,parameter :: ntaylor=3 !< 最大微分回数
+  integer,parameter :: ntaylor=10 !< 最大微分回数
   
 end module module_globals

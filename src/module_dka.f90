@@ -29,9 +29,22 @@ contains
   subroutine init_dka(dka_)
     type(DurandKernerAberth),target,intent(inout) :: dka_
 
-    dka_%m=3; m=>dka_%m
-    dka_%x0=2.d0; x0=>dka_%x0
-    allocate(dka_%q(0:m)); dka_%q=(/-5.d0,4.d0,3.d0,2.d0/); q=>dka_%q;
+    ! dka_%m=3; m=>dka_%m
+    ! dka_%x0=2.d0; x0=>dka_%x0
+    ! allocate(dka_%q(0:m)); dka_%q=(/-5.d0,4.d0,3.d0,2.d0/); q=>dka_%q
+
+    ! dka_%m=7; m=>dka_%m
+    ! dka_%x0=0.d0; x0=>dka_%x0
+    ! allocate(dka_%q(0:m)); dka_%q=(/1.d0,1.d0,1.d0,1.d0,1.d0,1.d0,1.d0,1.d0/); q=>dka_%q
+    
+    ! dka_%m=7; m=>dka_%m
+    ! dka_%x0=0.d0; x0=>dka_%x0
+    ! allocate(dka_%q(0:m)); dka_%q=(/-1.d0,-3.d0,-3.d0,-1.d0,1.d0,3.d0,3.d0,1.d0/); q=>dka_%q
+
+    dka_%m=7; m=>dka_%m
+    dka_%x0=0.d0; x0=>dka_%x0
+    allocate(dka_%q(0:m)); dka_%q=(/-5040.d0,13068.d0,-13132.d0,6769.d0,-1960.d0,322.d0,-28.d0,1.d0/); q=>dka_%q
+
     dka_%beta=0.d0 ;beta=>dka_%beta
     dka_%zeta=0.d0 ;zeta=>dka_%zeta
     allocate(dka_%c(0:m)); c=>dka_%c
@@ -54,7 +67,7 @@ contains
     integer :: i, j, k
     real(8) :: tmp
     complex(8) :: ztmp
-    
+
     beta=-1.d0/dble(m)*(q(m-1)-m*x0*q(m))/q(m)
     
     Dbeta=ad(beta)
@@ -84,16 +97,19 @@ contains
        write(10+i,*) real(alpha(i)), aimag(alpha(i))
     end do
     
-    do k=1,100
+    do k=1,1000
        do j=1,m
           Dalphaj=ad(alpha(j))
           Dg=q(m)
           do i=m-1,0,-1
              Dg=Dg*(Dalphaj-x0)+q(i)
           end do
-          alpha(j)=alpha(j)-Dg%f(0)/Dg%f(1)
+          alpha(j)=alpha(j)-Dg%f(0)/Dg%f(1)*0.2d0
           write(10+j,*) real(alpha(j)),aimag(alpha(j))
        end do
+    end do
+    do i=1,m
+       write(*,*) alpha(i)
     end do
     
   end subroutine find_roots_dka
