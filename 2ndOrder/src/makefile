@@ -49,11 +49,12 @@ endif
 ifdef OPT
 LIBS = -lm
 endif
+LIBS += -lslatec
 ifeq ($(FC), $(GFORTRAN))
-LIBS += -lslatec_gfortran -llapack -lblas
+LIBS += -llapack -lblas
 endif
 ifeq ($(FC), $(IFORT))
-LIBS += -lslatec -mkl
+LIBS += -mkl
 endif
 
 LDFLAGS = $(LIBS)

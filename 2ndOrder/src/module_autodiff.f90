@@ -44,11 +44,16 @@ module module_autodiff
   !-------------------------------------------------------------------------------------------------
 
   !-------------------------------------------------------------------------------------------------  
+  !> assign real8 and complex8 to type(Dcomplex8)
+  interface ad
+     module procedure ad_real8, ad_dcomplex8
+  end interface ad
+
   !> Equal assignment
   public assignment (=)
   interface assignment (=)
-     module procedure EqualDR  !Dcomplex=real
-     module procedure EqualDC  !Dcomplex=complex
+     module procedure EqualDR !Dcomplex=real
+     module procedure EqualDC !Dcomplex=complex
      module procedure EqualDD !Dcomplex=Dcomplex
   end interface assignment (=)
 
@@ -380,15 +385,25 @@ contains
     end do
   end function d2t
   
+  !> assign real(8) independent variable to type(Dcomplex8)
+  type(Dcomplex8) function ad_real8(x) result(out)
+    real(8),intent(in) :: x
+
+    out%f(0)=cmplx(x,0.d0,kind(1.d0))
+    if(ntaylor.ge.1) out%f(1)=one
+    if(ntaylor.ge.2) out%f(2:ntaylor)=zero
+
+  end function ad_real8
+  
   !> assign complex(8) independent variable to type(Dcomplex8)
-  type(Dcomplex8) function ad(z) result(out)
+  type(Dcomplex8) function ad_dcomplex8(z) result(out)
     complex(8),intent(in) :: z
 
     out%f(0)=z
-    out%f(1)=one
-    out%f(2:ntaylor)=zero
+    if(ntaylor.ge.1) out%f(1)=one
+    if(ntaylor.ge.2) out%f(2:ntaylor)=zero
 
-  end function ad
+  end function ad_dcomplex8
   
   !=================================================================================================
   !> compute binomial coefficient
@@ -423,7 +438,7 @@ contains
     integer :: i
 
     fact(0)=1.d0
-    fact(1)=1.d0
+    if(n.ge.1) fact(1)=1.d0
     do i=2,n
        fact(i)=fact(i-1)*dble(i)
     end do
@@ -1512,15 +1527,25 @@ contains
     zr=real(v2%f(0))
     zi=aimag(v2%f(0))
     fnu=max(v1-n,0)
-    call zbesj(zr,zi,fnu,kode,nn,cyr(max(v1-n,0)),cyi(max(v1-n,0)),nz,ierr)
-    call zbesy(zr,zi,fnu,kode,nn,cyr2(max(v1-n,0)),cyi2(max(v1-n,0)),nz,wkr(max(v1-n,0)),wki(max(v1-n,0)),ierr)
-    do i=v1-n,min(v1+n,0)
-       besh(i)=sign(1.d0,dble(i))**(abs(i))&
-            *cmplx(cyr(abs(i))-pm2*cyi2(abs(i)),cyi(abs(i))+pm2*cyr2(abs(i)),kind(1.d0))
-    end do
-    do i=max(v1-n,0),v1+n
-       besh(i)=cmplx(cyr(i)-pm2*cyi2(i),cyi(i)+pm2*cyr2(i),kind(1.d0))
-    end do
+    if(abs(zi).le.tiny)then
+       call zbesj(zr,zi,fnu,kode,nn,cyr(max(v1-n,0)),cyi(max(v1-n,0)),nz,ierr)
+       call zbesy(zr,zi,fnu,kode,nn,cyr2(max(v1-n,0)),cyi2(max(v1-n,0)),nz,wkr(max(v1-n,0)),wki(max(v1-n,0)),ierr)
+       do i=v1-n,min(v1+n,0)
+          besh(i)=sign(1.d0,dble(i))**(abs(i))&
+               *cmplx(cyr(abs(i))-pm2*cyi2(abs(i)),cyi(abs(i))+pm2*cyr2(abs(i)),kind(1.d0))
+       end do
+       do i=max(v1-n,0),v1+n
+          besh(i)=cmplx(cyr(i)-pm2*cyi2(i),cyi(i)+pm2*cyr2(i),kind(1.d0))
+       end do
+    else
+       call zbesh(zr,zi,fnu,kode,m,nn,cyr(max(v1-n,0)),cyi(max(v1-n,0)),nz,ierr)
+       do i=v1-n,min(v1+n,0)
+          besh(i)=sign(1.d0,dble(i))**(abs(i))*cmplx(cyr(abs(i)),cyi(abs(i)),kind(1.d0))
+       end do
+       do i=max(v1-n,0),v1+n
+          besh(i)=cmplx(cyr(i),cyi(i),kind(1.d0))
+       end do
+    end if
     fext(:)=zero
     fext(0)=besh(v1)
     coef=0.5d0
